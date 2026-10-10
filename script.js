@@ -11,6 +11,28 @@ const noteCount = document.querySelector("#note-count");
 let notes = [];
 
 const MAX_LENGTH = 200;
+const STORAGE_KEY = "quicknotes-notes";
+
+// Save notes to localStorage
+function saveNotes() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+  } catch (error) {
+    console.error("Could not save notes:", error);
+  }
+}
+
+// Load notes from localStorage
+function loadNotes() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const parsed = stored ? JSON.parse(stored) : [];
+    notes = Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error("Could not load notes:", error);
+    notes = [];
+  }
+}
 
 // Show the correct count message for zero, one and many notes
 function updateCount() {
@@ -28,7 +50,21 @@ function render() {
   notesList.textContent = "";
   updateCount();
 
-  notes.forEach(function (note) {
+  // Only show notes that match the search words (not case-sensitive)
+  const searchTerm = searchInput.value.trim().toLowerCase();
+  const visibleNotes = notes.filter(function (note) {
+    return note.text.toLowerCase().includes(searchTerm);
+  });
+
+  if (notes.length > 0 && visibleNotes.length === 0) {
+    const empty = document.createElement("li");
+    empty.classList.add("empty-message");
+    empty.textContent = "No notes match your search.";
+    notesList.appendChild(empty);
+    return;
+  }
+
+  visibleNotes.forEach(function (note) {
     const li = document.createElement("li");
     li.classList.add("note-card", "category-" + note.category.toLowerCase());
 
@@ -92,6 +128,7 @@ form.addEventListener("submit", function (event) {
   };
 
   notes.push(note);
+  saveNotes();
   render();
 
   noteInput.value = "";
@@ -107,7 +144,13 @@ notesList.addEventListener("click", function (event) {
   notes = notes.filter(function (note) {
     return note.id !== id;
   });
+  saveNotes();
   render();
 });
 
+// Search as the user types
+searchInput.addEventListener("input", render);
+
+// Load saved notes when the page opens
+loadNotes();
 render();
