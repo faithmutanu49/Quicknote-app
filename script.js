@@ -6,6 +6,7 @@ const errorMessage = document.querySelector("#error-message");
 const searchInput = document.querySelector("#search-input");
 const notesList = document.querySelector("#notes-list");
 const noteCount = document.querySelector("#note-count");
+const clearAllBtn = document.querySelector("#clear-all");
 
 // App state: an array of note objects { id, text, category, createdAt }
 let notes = [];
@@ -146,6 +147,18 @@ notesList.addEventListener("click", function (event) {
   });
   saveNotes();
   render();
+});
+
+// Bonus: delete every note after confirmation
+clearAllBtn.addEventListener("click", function () {
+  if (notes.length === 0) {
+    return;
+  }
+  if (confirm("Delete all notes?")) {
+    notes = [];
+    saveNotes();
+    render();
+  }
 });
 
 // Search as the user types
